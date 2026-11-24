@@ -1,0 +1,7 @@
+part*.mp4
+mix.f32
+mix.wav
+list.txt
+log*.txt
+stills/
+__pycache__/
