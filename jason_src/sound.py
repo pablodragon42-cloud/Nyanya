@@ -626,8 +626,58 @@ def arrange():
     SFX.add(sad_trombone(.42), we(18, 10) + .14, pan=.1)
 
 
+# ------------------------------------------------------------------ cartoon-version gags (stickers, HUD, pops)
+def bloop(g=1.0, f0=320, f1=980, d=0.09):
+    t = tt(d)
+    return norm(sine(np.geomspace(f0, f1, len(t)), d) * env(len(t), .002, .04), g)
+
+
+def buzzer(g=1.0):
+    d = 0.32
+    t = tt(d)
+    x = np.sign(np.sin(2 * np.pi * 110 * t)) + np.sign(np.sin(2 * np.pi * 116 * t)) * .6
+    return norm(flt(x, "lowpass", 1800) * env(len(t), .005, .05), g)
+
+
+def slurp(g=1.0):
+    d = 0.45
+    t = tt(d)
+    x = flt(noise(d), "bp", (500, 2200)) * (0.5 + 0.5 * np.sin(2 * np.pi * 22 * t)) ** 2
+    return norm(x * env(len(t), .03, .1), g)
+
+
+def blip(g=1.0):
+    a, b = boop(1.0, 1320), boop(1.0, 1760)
+    out = np.zeros(int(.2 * SR)); out[:len(a)] += a; i = int(.07 * SR); out[i:i + len(b)] += b
+    return norm(out, g)
+
+
+def bonk(g=1.0):
+    d = .3
+    t = tt(d)
+    return norm(sine(520 * np.exp(-t * 6) + 180, d) * np.exp(-t / .08), g)
+
+
+def gags():
+    if os.environ.get("CARTOON") != "1":
+        return
+    pops = [1.15, 6.95, 7.4, ws(4, 3), ws(4, 4) + .05, ws(5, 13) + .1, 20.4, ws(6, 5) + .3, ws(6, 8), ws(9, 4) + .02,
+            ws(9, 5) + .05, 33.65, 39.85, 43.2, ws(16, 3), ws(17, 8)]
+    for k, p in enumerate(pops):
+        SFX.add(bloop(.32, 300 + 40 * (k % 4), 900 + 80 * (k % 3)), p, pan=.25 * (-1) ** k)
+    SFX.add(ding(1568, .3), 2.75, pan=-.2)
+    SFX.add(buzzer(.35), ws(2, 4) + .02)
+    for p in (3.95, 7.5, 27.45, 49.0, 4.3, 5.25, 16.3, 23.1, 26.5, 39.4, 8.3, 44.5, 51.9, 53.6, 58.0):
+        SFX.add(blip(.18), p, pan=.4)
+    SFX.add(slurp(.3), 12.7)
+    SFX.add(bonk(.35), 47.2)
+    SFX.add(bonk(.3), 47.75)
+    SFX.add(ding(2093, .25, 1.0), ws(6, 13) + .3)
+
+
 def main():
     arrange()
+    gags()
     import wave as wv
     with wv.open(os.path.join(BUILD, "voice.wav")) as f:
         v = np.frombuffer(f.readframes(f.getnframes()), np.int16).astype(np.float64) / 32768
